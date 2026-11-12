@@ -1,0 +1,10 @@
+{
+  "name": "Assistant Uber Eats",
+  "short_name": "Uber Assistant",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#101827",
+  "lang": "fr-CA",
+  "description": "Calculateur de rentabilité avec marge de temps, saisie manuelle et vocale."
+}

@@ -1,0 +1,15 @@
+ASSISTANT UBER EATS — VERSION WEB ANDROID
+
+Contenu :
+- index.html : application avec saisie manuelle, reconnaissance vocale (si prise en charge par le navigateur) et lecture vocale du résultat.
+- manifest.webmanifest et sw.js : éléments nécessaires à une installation PWA et à la mise en cache.
+
+Paramètres :
+- Livraison simple/normale : marge de temps de 15 %.
+- Livraison groupée : marge de temps de 20 %.
+- Seuils du taux horaire prudent : >= 35 $ excellent ; >= 30 $ intéressant ; >= 25 $ à vérifier ; < 25 $ peu intéressant.
+
+IMPORTANT :
+Cette version est une application web progressive (PWA), pas un APK Android natif. Pour l'installer comme application sur Android, les fichiers doivent être hébergés sur une adresse HTTPS, puis ouverts dans Chrome : menu ⋮ > Installer l'application / Ajouter à l'écran d'accueil.
+La reconnaissance vocale du navigateur peut nécessiter Internet et n'est pas garantie sur tous les navigateurs/appareils.
+L'application ne lit pas l'écran d'Uber Eats, ne collecte pas les données Uber et ne valide aucune commande. Utiliser uniquement lorsque le véhicule est stationné en sécurité.

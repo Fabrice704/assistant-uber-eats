@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<title>Assistant Uber Eats</title><link rel="manifest" href="./manifest.webmanifest">
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#151f31;--muted:#a7b4c7;--line:#2b3a52;--blue:#2563eb}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#14223a,#080d17 75%);color:#f8fafc;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:calc(18px + env(safe-area-inset-top)) 15px calc(24px + env(safe-area-inset-bottom));min-height:100vh}
+main{max-width:500px;margin:auto}h1{font-size:1.5rem;margin:0 0 5px}.sub{color:var(--muted);font-size:.9rem;line-height:1.45;margin:0 0 18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:17px;margin-bottom:13px;box-shadow:0 10px 28px #0003}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:15px}.tabs button,.type button,.action{border:1px solid #40516c;border-radius:12px;background:#0d1727;color:#edf4ff;padding:12px;font-weight:700;font-size:.94rem}.tabs button.active,.type button.active{background:#1d3b60;border-color:#60a5fa}
+label{display:block;font-size:.9rem;font-weight:650;margin:0 0 7px}.field{margin:0 0 15px}
+input[type=number],input[type=text]{width:100%;padding:14px;border-radius:12px;border:1px solid #40516c;background:#0d1727;color:white;font-size:1.15rem}
+.type{display:grid;grid-template-columns:1fr 1fr;gap:8px}.type small{display:block;color:#b8c7da;font-weight:500;margin-top:3px}
+button:focus-visible,input:focus-visible{outline:2px solid #93c5fd;outline-offset:2px}
+.voicebox{padding:13px;border:1px dashed #526782;border-radius:13px;background:#0d1727;margin-bottom:14px}
+.voicebox p{color:var(--muted);font-size:.83rem;line-height:1.4;margin:8px 0 0}
+.action{width:100%;background:var(--blue);border:0;padding:14px;font-size:1rem}.action.secondary{background:#23344d;border:1px solid #40516c}.action:disabled{opacity:.5}
+.result{background:#0d1727;border:1px solid var(--line);border-radius:16px;padding:17px;margin-top:15px}
+.muted{color:var(--muted);font-size:.84rem}.rate{font-size:2.45rem;font-weight:850;letter-spacing:-1px;margin:3px 0 8px}.badge{display:inline-block;border-radius:99px;padding:7px 11px;font-weight:750;font-size:.85rem}.excellent{color:#86efac;background:#14532d77}.interesting{color:#86efac;background:#14532d66}.check{color:#fcd34d;background:#78350f77}.reject{color:#fca5a5;background:#7f1d1d77}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}.mini{background:#172338;border-radius:11px;padding:11px}.mini span{display:block;color:var(--muted);font-size:.76rem;margin-bottom:4px}.mini strong{font-size:1rem}
+.notice{font-size:.78rem;color:var(--muted);line-height:1.5;margin:12px 2px 0}.state{font-size:.82rem;color:#cbd5e1;min-height:20px;margin-top:8px}.hidden{display:none}
+footer{font-size:.76rem;color:#8493a8;line-height:1.5;text-align:center;margin:15px 8px}
+</style>
+</head>
+<body>
+<main>
+<h1>Assistant Uber Eats</h1>
+<p class="sub">Évalue une offre avec une marge de temps avant de décider. L'assistant ne se connecte pas à Uber Eats et n'accepte/refuse aucune commande.</p>
+
+<section class="card">
+ <div class="tabs">
+  <button id="manualTab" class="active" type="button">Saisie rapide</button>
+  <button id="voiceTab" type="button">Mode vocal</button>
+ </div>
+ <div id="voicePanel" class="voicebox hidden">
+  <button class="action" id="listenBtn" type="button">🎙️ Dicter une offre</button>
+  <p>Exemple : « 31 dollars, 60 minutes, groupée » ou « 18 dollars, 25 minutes, simple ».</p>
+  <div id="voiceState" class="state" aria-live="polite">Appuie sur le micro et parle clairement.</div>
+ </div>
+ <div class="field"><label for="amount">Montant proposé (CAD $)</label><input id="amount" type="number" inputmode="decimal" min="0" step=".25" value="31" placeholder="Ex. 31"></div>
+ <div class="field"><label for="minutes">Temps estimé par Uber (minutes)</label><input id="minutes" type="number" inputmode="numeric" min="1" max="300" step="1" value="60" placeholder="Ex. 60"></div>
+ <div class="field"><label>Type de livraison</label>
+  <div class="type"><button id="simple" class="active" type="button">Simple / normale<small>Marge +15 %</small></button><button id="group" type="button">Groupée<small>Marge +20 %</small></button></div>
+ </div>
+ <button class="action secondary" id="speakResult" type="button">🔊 Lire le résultat</button>
+ <div class="result" aria-live="polite">
+  <div class="muted">Revenu horaire calculé avec le temps prudent</div>
+  <div class="rate" id="hourly">$26,09/h</div><span class="badge check" id="decision">À vérifier</span>
+  <div class="grid">
+   <div class="mini"><span>Temps Uber</span><strong id="baseTime">60 min</strong></div>
+   <div class="mini"><span>Temps prudent</span><strong id="safeTime">1 h 10</strong></div>
+   <div class="mini"><span>Marge ajoutée</span><strong id="extraTime">+10 min (15 %)</strong></div>
+   <div class="mini"><span>Revenu par heure brut</span><strong id="rawRate">$31,00/h</strong></div>
+  </div>
+  <p class="notice" id="summary"></p>
+ </div>
+ <div class="notice">Repères indicatifs : 35 $/h et plus = excellent ; 30 à 34,99 $/h = intéressant ; 25 à 29,99 $/h = à vérifier ; moins de 25 $/h = peu intéressant. Le calcul ne déduit pas les frais du véhicule.</div>
+</section>
+<section class="card">
+ <strong>Raccourci vocal</strong>
+ <p class="notice">La reconnaissance vocale dépend de la prise en charge par ton navigateur et peut nécessiter Internet. Si le micro ne fonctionne pas, utilise la saisie rapide. Fais les manipulations uniquement lorsque tu es stationné en sécurité.</p>
+</section>
+<footer>Assistant indépendant · Aucun accès aux données Uber · Aucune décision automatique</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);let kind='simple',recognition=null;
+const money=n=>new Intl.NumberFormat('fr-CA',{style:'currency',currency:'CAD'}).format(n);
+const duration=m=>{let h=Math.floor(m/60),r=m%60;return h?`${h} h${r?' '+r+' min':''}`:`${m} min`;};
+function update(){
+ const amount=Math.max(0,Number($('amount').value)||0),minutes=Math.max(1,Number($('minutes').value)||1),pct=kind==='simple'?15:20;
+ const safe=Math.ceil(minutes*(1+pct/100)/5)*5,extra=safe-minutes,prudent=amount*60/safe,raw=amount*60/minutes;
+ $('hourly').textContent=money(prudent)+'/h';$('baseTime').textContent=duration(minutes);$('safeTime').textContent=duration(safe);$('extraTime').textContent=`+${extra} min (${pct} %)`;
+ $('rawRate').textContent=money(raw)+'/h';
+ const d=$('decision');d.className='badge';
+ if(prudent>=35){d.classList.add('excellent');d.textContent='EXCELLENT';}
+ else if(prudent>=30){d.classList.add('interesting');d.textContent='INTÉRESSANT';}
+ else if(prudent>=25){d.classList.add('check');d.textContent='À VÉRIFIER';}
+ else{d.classList.add('reject');d.textContent='PEU INTÉRESSANT';}
+ $('summary').textContent=`Mode ${kind==='simple'?'simple / normale':'groupée'} : marge de ${pct} %. Prévois environ ${duration(safe)} au lieu des ${duration(minutes)} annoncées par Uber.`;
+}
+function setKind(k){kind=k;$('simple').classList.toggle('active',k==='simple');$('group').classList.toggle('active',k==='group');update();}
+$('simple').addEventListener('click',()=>setKind('simple'));$('group').addEventListener('click',()=>setKind('group'));
+$('amount').addEventListener('input',update);$('minutes').addEventListener('input',update);
+$('manualTab').onclick=()=>{ $('manualTab').classList.add('active');$('voiceTab').classList.remove('active');$('voicePanel').classList.add('hidden'); };
+$('voiceTab').onclick=()=>{ $('voiceTab').classList.add('active');$('manualTab').classList.remove('active');$('voicePanel').classList.remove('hidden'); };
+function parseSpoken(text){
+ let s=text.toLowerCase().replace(',', '.');
+ const nums=(s.match(/\d+(?:\.\d+)?/g)||[]).map(Number);
+ if(nums.length<2)return false;
+ $('amount').value=nums[0];$('minutes').value=nums[1];
+ if(/group|package|paquet|plusieurs|arr[eê]ts/.test(s))setKind('group');
+ else if(/simple|normal|individuel/.test(s))setKind('simple');
+ update();return true;
+}
+$('listenBtn').onclick=()=>{
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){$('voiceState').textContent="La reconnaissance vocale n'est pas disponible dans ce navigateur. Essaie Chrome sur Android ou utilise la saisie rapide.";return;}
+ if(recognition){try{recognition.stop()}catch(e){}}
+ recognition=new SR();recognition.lang='fr-CA';recognition.interimResults=false;recognition.maxAlternatives=3;
+ $('voiceState').textContent='Écoute en cours…';
+ recognition.onresult=e=>{const t=e.results[0][0].transcript;$('voiceState').textContent='Entendu : « '+t+' »';if(!parseSpoken(t))$('voiceState').textContent+=' — Je n’ai pas reconnu le montant et le temps. Réessaie ou saisis-les manuellement.';};
+ recognition.onerror=e=>{$('voiceState').textContent='Micro indisponible ('+e.error+'). Utilise la saisie rapide.';};
+ recognition.onend=()=>{if($('voiceState').textContent==='Écoute en cours…')$('voiceState').textContent='Aucune parole détectée. Réessaie.';};
+ try{recognition.start()}catch(e){$('voiceState').textContent='Impossible de démarrer le micro. Réessaie.';}
+};
+$('speakResult').onclick=()=>{
+ if(!('speechSynthesis'in window)){return;}
+ const pct=kind==='simple'?15:20,amount=Number($('amount').value)||0,mins=Number($('minutes').value)||1,safe=Math.ceil(mins*(1+pct/100)/5)*5,rate=amount*60/safe;
+ const verdict=rate>=35?'Excellent':rate>=30?'Intéressant':rate>=25?'À vérifier':'Peu intéressant';
+ const utter=new SpeechSynthesisUtterance(`${verdict}. ${rate.toFixed(2)} dollars par heure après marge. Temps prudent : ${safe} minutes.`);
+ utter.lang='fr-CA';speechSynthesis.cancel();speechSynthesis.speak(utter);
+};
+update();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+</script>
+</body></html>
